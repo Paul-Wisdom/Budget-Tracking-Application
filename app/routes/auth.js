@@ -7,7 +7,9 @@ const Router = express.Router();
 Router.post('/api/signup', authController.postSignUp);
 Router.post('/api/signin', authController.postSignIn);
 Router.post('/api/signout', authController.protectedRoute, authController.postSignOut);
-Router.post('/api/verify/:id/:uniqueString', authController.postVerification);
+Router.get('/api/verify/signup/:id/:uniqueString', authController.getAccountVerification);
+Router.get('/api/verify/chpwd/:id/:uniqueString', authController.getPasswordVerification);
+Router.post('/api/change-password', authController.protectedRoute, authController.postPasswordChange);
 Router.post('/test', authController.protectedRoute, (req, res) => {
     console.log(req.user_id);
     res.send({message: "authorized"});

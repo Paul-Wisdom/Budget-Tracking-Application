@@ -7,6 +7,7 @@ require('dotenv').config();
 const User = require('../models/user')
 const config = require('../config/auth.config');
 const Verification = require("../models/userVerification");
+const NewPassword = require("../models/newPassword");
 
 console.log(process.env.AUTH_PASS);
 let transporter = nodemailer.createTransport({
@@ -28,18 +29,30 @@ transporter.verify((error, success) => {
     }
 })
 
-const sendVerificationMail= ({id, email}, res) => {
+const sendVerificationMail= ({id, email}, res, type) => {
     const currentUrl = "http://localhost:3001/";
     const uniqueString = uuidv4() + id;
+    let body;
+    let url;
 
+    if (type == 0)
+        {
+            url = currentUrl + "api/verify/signup/" + id +  '/' + uniqueString;
+            body = `<p>Verify your email address to complete registration process <a href="${currentUrl + "api/verify/" + id +  '/' + uniqueString } >here</a></p>
+            <p>Expires in <b>6 hours</b></p>`
+        }
+        else{
+            url= currentUrl + "api/verify/chpwd/" + id +  '/' + uniqueString;
+                body = `<p>Verify your email address to change password <a href="${currentUrl + "api/verify/" + id +  '/' + uniqueString} >here</a></p>
+                    <p>Expires in <b>6 hours</b></p>`
+        }
     const mailOptions = {
         from: process.env.AUTH_EMAIL,
         to: email,
         subject: "verify your email",
-        html: `<p>Verify your email address to complete registration process <a href="${currentUrl + "api/verify/" + id +  '/' + uniqueString} >here</a></p>
-                <p>Expires in <b>6 hours</b></p>`
+        html: body
     }
-
+    console.log(url);
     bcrypt.hash(uniqueString, 12).then(hashedstr => {
        return Verification.create({userId: id, string: hashedstr, createdAt: Date.now(), expiresAt: Date.now() + (6 * 60 * 60 * 1000)});
     }).then(result => {
@@ -53,16 +66,18 @@ const sendVerificationMail= ({id, email}, res) => {
     })
 }
 
-const postVerification = (req, res, next) => {
+const getAccountVerification = (req, res, next) => {
     const id = req.params.id;
     const uniqueString = req.params.uniqueString;
+
     console.log(id, uniqueString)
     let v2;
-
+    let msg = ["Account does not exist or has been verified","Link has expired. SignUp again", "Email verified"];
+  
     Verification.findOne({where : {userId : id}}).then(verif => {
         if(!verif)
             {
-                res.status(401).send({messge: "Account does not exist or has been verified", error: true})
+                res.status(401).send({messge: msg[0], error: true})
             }
         if(Date.now > verif.expiresAt)
             {
@@ -71,7 +86,7 @@ const postVerification = (req, res, next) => {
                 }).then(user =>{
                     return user.destroy();
                 }).then(result => {
-                    res.status(401).send({message: "Link has expired. SignUp again", error: true});
+                    res.status(401).send({message: msg[1], error: true});
                 }).catch(err => {
                     console.log(err);
                 })
@@ -87,7 +102,7 @@ const postVerification = (req, res, next) => {
                 }).then(result => {
                     result.save();
                     v2.destroy().then(result => {
-                        res.json({message: "Email verified", error: false})
+                        res.json({message: msg[2], error: false})
                     })
                 }).catch(err => {
                     console.log(err);
@@ -130,7 +145,8 @@ const postSignUp = (req, res, next) => {
         }).then(result => {
             console.log(result);
             //send verification mail
-            sendVerificationMail(result, res);
+            let type = 0 //0 for account creation 1 for password change
+            sendVerificationMail(result, res, type);
         //    return res.json({message: "sign  up successful"}); //redirect after successful sign up
         }).catch(err => {
             console.log(err);
@@ -169,7 +185,7 @@ const postSignIn = (req, res, next) => {
             }
             res.cookie("jwt", token, cookieOptions);
             // res.json(token);
-            res.json({message: "cookie has been sent to browser", error: false});
+            res.json({message: "cSign In successful, cookie has been sent to browser", error: false});
         }
         res.status(403).send({message: "wrong email or password", error: true});
     }).catch(err => {
@@ -218,10 +234,118 @@ const postSignOut = (req, res, next) => {
     res.cookie("jwt", "");
     res.json({message: "User signed out", error: false});
 }
+
+const postPasswordChange = (req, res, next) => {
+    const user_id = req.user_id;
+    const type = 1;
+    const newPassword = req.body.newPassword;
+    let Pwd;
+    console.log("password ",newPassword);
+
+    NewPassword.findOne({where: {userId: user_id}}).then(result => {
+        if(result)
+            {
+                result.destroy().then(result => {
+                    Verification.findOne({where: {userId: user_id}}).then(result => {
+                        result.destroy();
+                    })
+                });
+            }
+            bcrypt.hash(newPassword, 12).then(hashedPwd => {
+                Pwd = hashedPwd;
+                return User.findOne({where : {id : user_id}})
+            }).then(user => {
+                console.log(user);
+                if( user && user.verified === true)
+                    {
+                        NewPassword.create({password: Pwd, userId : user_id, createdAt: Date.now(), expiresAt: Date.now() + (6 * 60 * 60 * 1000)})
+                        sendVerificationMail(user, res, type)
+                    }
+                else{
+                    return res.json({message: "This user is not verified", error: true});
+                }
+            })
+    })
+}
+
+
+//after clicking the link sent to email the user should enter his new password which is sent to the db for saving
+const getPasswordVerification = (req, res, next) => {
+
+    const id = req.params.id;
+    const uniqueString = req.params.uniqueString;
+
+    console.log(id, uniqueString)
+    let v2;
+    let n2;
+
+    let msg = ["Account does not exist or password changed", "Link has expired, Click on forgot password again", "Password changed successfully"];
+    Verification.findOne({where : {userId : id}}).then(verif => {
+        if(!verif)
+            {
+                res.status(401).send({messge: msg[0], error: true})
+            }
+        if(Date.now > verif.expiresAt)
+            {
+                verif.destroy().then(result => {
+                    res.status(401).send({message: msg[1], error: true});
+                }).catch(err => {
+                    console.log(err);
+                })
+            }
+            v2 = verif;
+        return bcrypt.compare(uniqueString, verif.string);
+    }).then(match => {
+        console.log("unique match?", match)
+        if(match)
+            {
+                NewPassword.findOne({where: {userId : id}}).then(result => {
+                if(!result)
+                    {
+                        res.status(401).send({messge: msg[0], error: true})
+                    }
+                if(Date.now > result.expiresAt)
+                    {
+                        result.destroy().then(result => {
+                        res.status(401).send({message: msg[1], error: true});
+                        }).catch(err => {
+                        console.log(err); })
+                    }
+                    n2 = result;
+                    return User.findOne({where: {id: id}})
+                    }).then(user => {
+                        return user.set({password: n2.password})
+                    }).then(result => {
+                        return result.save();
+                    }).then(result=> {
+                        return v2.destroy();
+                    }).then(result=> {
+                        return n2.destroy();
+                    }).then(result=> {
+                        res.json({message: msg[2], error: false});
+                    }).catch(err => {
+                        console.log(err);
+                        res.json({message: "Error verifing email", error: true})
+                    })
+
+            }
+            else{
+                return res.json({message: "Invalid link", error: true});
+            }
+
+    }).catch(err => {
+        console.log(err);
+        return res.json({message: "Error verifing email", error: true})
+    })
+}
+
+
 module.exports = {
     postSignUp,
     postSignIn,
     postSignOut,
     protectedRoute,
-    postVerification
+    getAccountVerification,
+    postPasswordChange,
+    getPasswordVerification
 }
