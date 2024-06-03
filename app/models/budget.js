@@ -8,14 +8,13 @@ const Budget = sequelize.define('budget', {
         allowNull: false,
         primaryKey: true,
         autoIncrement: true
-    }, 
-    
-    name: {
-        type: Sequelize.STRING
     },
 
-    duration: {
-        type: Sequelize.INTEGER,
+    current: {
+        type: Sequelize.BOOLEAN,
+    },
+    month: {
+        type: Sequelize.STRING
     }
 });
 

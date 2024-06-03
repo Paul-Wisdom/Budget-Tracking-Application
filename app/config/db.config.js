@@ -2,8 +2,8 @@ require("dotenv").config();
 
 module.exports = {
     HOST: 'localhost',
-    USER: 'root',
+    USER: process.env.DB_USER, //env
     PASSWORD: process.env.DB_PASS,
     DIALECT: 'mysql',
-    DB: 'budget-tracker'
+    DB: process.env.DB //env
 }

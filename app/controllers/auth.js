@@ -9,7 +9,6 @@ const config = require('../config/auth.config');
 const Verification = require("../models/userVerification");
 const NewPassword = require("../models/newPassword");
 
-console.log(process.env.AUTH_PASS);
 let transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -30,7 +29,7 @@ transporter.verify((error, success) => {
 })
 
 const sendVerificationMail= ({id, email}, res, type) => {
-    const currentUrl = "http://localhost:3001/";
+    const currentUrl = "http://localhost:" + process.env.SERVER_PORT +'/';
     const uniqueString = uuidv4() + id;
     let body;
     let url;
@@ -38,7 +37,7 @@ const sendVerificationMail= ({id, email}, res, type) => {
     if (type == 0)
         {
             url = currentUrl + "api/verify/signup/" + id +  '/' + uniqueString;
-            body = `<p>Verify your email address to complete registration process <a href="${currentUrl + "api/verify/" + id +  '/' + uniqueString } >here</a></p>
+            body = `<p>Verify your email address to complete registration process by clicking this link ${url}</p>
             <p>Expires in <b>6 hours</b></p>`
         }
         else{
@@ -124,32 +123,33 @@ const postSignUp = (req, res, next) => {
     const email = req.body.email;
     const password = req.body.password;
 
-    console.log(name, email, typeof(password));
+    // console.log(name, email, typeof(password));
 
     User.findOne({where: {username: name}}).then(user => {
         if(user)
         {
+            console.log("here1");
            return res.status(403).send({message: "username already in use", error: true});
         }
-        return User.findOne({where: {email: email}})
+        User.findOne({where: {email: email}}).then(user => {
+            if(user)
+            {
+               return res.status(403).send({message: "Email already in use", error: true});
+            }
+            console.log("good to go");
+            return  bcrypt.hash(password, 12);
+        }).then(hashedPwd => {
+                return User.create({username: name, email: email, password: hashedPwd, verified: false})
+            }).then(result => {
+                console.log(result);
+                //send verification mail
+                let type = 0 //0 for account creation 1 for password change
+                sendVerificationMail(result, res, type);
+            //    return res.json({message: "sign  up successful"}); //redirect after successful sign up
+            }).catch(err => {
+                console.log(err);
+        })
         
-    }).then(user => {
-        if(user)
-        {
-           return res.status(403).send({message: "Email already in use", error: true});
-        }
-        console.log("good to go");
-        return  bcrypt.hash(password, 12);
-    }).then(hashedPwd => {
-            return User.create({username: name, email: email, password: hashedPwd, verified: false})
-        }).then(result => {
-            console.log(result);
-            //send verification mail
-            let type = 0 //0 for account creation 1 for password change
-            sendVerificationMail(result, res, type);
-        //    return res.json({message: "sign  up successful"}); //redirect after successful sign up
-        }).catch(err => {
-            console.log(err);
     })
 }
 
@@ -173,7 +173,7 @@ const postSignIn = (req, res, next) => {
         {   
             if(loggedUser.verified == false)
                 {
-                    res.status(401).send({message: "user not verified", error: true});
+                    return res.status(401).send({message: "user not verified", error: true});
                 }
             console.log('logged in');
             const token = jwt.sign({id: loggedUser.id, name: loggedUser.username}, config.secretKey, {algorithm: 'HS256', expiresIn: '1h'});
@@ -185,9 +185,11 @@ const postSignIn = (req, res, next) => {
             }
             res.cookie("jwt", token, cookieOptions);
             // res.json(token);
-            res.json({message: "cSign In successful, cookie has been sent to browser", error: false});
+            return res.json({message: "cSign In successful, cookie has been sent to browser", error: false});
         }
-        res.status(403).send({message: "wrong email or password", error: true});
+        else{
+            return res.status(403).send({message: "wrong email or password", error: true});
+        }
     }).catch(err => {
         console.log(err);
     })
@@ -236,13 +238,17 @@ const postSignOut = (req, res, next) => {
 }
 
 const postPasswordChange = (req, res, next) => {
-    const user_id = req.user_id;
     const type = 1;
     const newPassword = req.body.newPassword;
+    const mail = req.body.email;
     let Pwd;
+    let user;
     console.log("password ",newPassword);
 
-    NewPassword.findOne({where: {userId: user_id}}).then(result => {
+    User.findOne({where: {email: mail}}).then(user1 => {
+        user = user1;
+        return NewPassword.findOne({where: {userId: user.id}}); 
+    }).then(result => {
         if(result)
             {
                 result.destroy().then(result => {
@@ -253,8 +259,7 @@ const postPasswordChange = (req, res, next) => {
             }
             bcrypt.hash(newPassword, 12).then(hashedPwd => {
                 Pwd = hashedPwd;
-                return User.findOne({where : {id : user_id}})
-            }).then(user => {
+                // return User.findOne({where : {id : user_id}})
                 console.log(user);
                 if( user && user.verified === true)
                     {
@@ -264,6 +269,8 @@ const postPasswordChange = (req, res, next) => {
                 else{
                     return res.json({message: "This user is not verified", error: true});
                 }
+            }).catch(err => {
+                console.log(err);
             })
     })
 }

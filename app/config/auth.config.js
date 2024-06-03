@@ -1,5 +1,5 @@
 require('dotenv').config();
 
 module.exports = {
-    secretKey: process.env.SCR_KEY
+    secretKey: process.env.JWT_SCR_KEY
 };
