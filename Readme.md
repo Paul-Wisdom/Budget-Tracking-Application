@@ -29,7 +29,7 @@ To run this application, you must have Nodejs installed on your system. You also
 - [click to download Nodejs](https://nodejs.org/en/download/package-manager)
 - [click to download MYSQL](https://www.mysql.com/downloads/)
 ### Installation guide
-- Clone the repository
+- Clone the repository with `git clone https://github.com/Paul-Wisdom/Budget-Tracking-Application.git`
 - Open the repository locally and navigate to the root directory
 - Install the dependencies using `npm install`
 - Start the server with `npm run start`
