@@ -29,7 +29,17 @@ transporter.verify((error, success) => {
 })
 
 const sendVerificationMail= ({id, email}, res, type) => {
-    const currentUrl = "http://localhost:" + process.env.SERVER_PORT +'/';
+    let baseUrl;
+    const env = process.env.ENV || 'development';
+
+    if (env === 'development')
+        {
+            baseUrl = 'http://localhost:';
+        }
+    else{
+            baseUrl = process.env.URL;
+        }
+    const currentUrl = baseUrl + process.env.SERVER_PORT +'/';
     const uniqueString = uuidv4() + id;
     let body;
     let url;
@@ -42,7 +52,7 @@ const sendVerificationMail= ({id, email}, res, type) => {
         }
         else{
             url= currentUrl + "api/verify/chpwd/" + id +  '/' + uniqueString;
-                body = `<p>Verify your email address to change password <a href="${currentUrl + "api/verify/" + id +  '/' + uniqueString} >here</a></p>
+                body = `<p>Verify your email address to change password by clicking on this link ${url}</p>
                     <p>Expires in <b>6 hours</b></p>`
         }
     const mailOptions = {

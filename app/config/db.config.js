@@ -1,9 +1,21 @@
 require("dotenv").config();
 
+let host;
+const env = process.env.ENV || 'development';
+
+if (env === 'development')
+    {
+        host = 'localhost';
+    }
+else{
+        host = process.env.DB_HOST;
+    }
+// add port
+console.log(host);
 module.exports = {
-    HOST: 'localhost',
-    USER: process.env.DB_USER, //env
+    HOST: host,
+    USER: process.env.DB_USER,
     PASSWORD: process.env.DB_PASS,
     DIALECT: 'mysql',
-    DB: process.env.DB //env
+    DB: process.env.DB 
 }
