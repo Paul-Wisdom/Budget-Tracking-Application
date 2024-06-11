@@ -1,3 +1,17 @@
+
+
+/**
+* You need to install on terminal (node.js):
+* -----------------------------------------------------
+* $ npm install pdfkit-table
+* -----------------------------------------------------
+* Run this file:
+* -----------------------------------------------------
+* $ node index-example.js
+* -----------------------------------------------------
+*
+*/
+const fetch = require('./fetchAllUsers');
 const PDFDocument = require('pdfkit-table');
 const fs = require('fs');
 const path = require('path');
@@ -5,7 +19,9 @@ const path = require('path');
 const getMonth = require('./getMonth');
 const month = getMonth();
 
-function generatePdf(user) {
+async function generatePdf() {
+  const users = await fetch();
+const user = users[0];
   const current_budget = user.budgets.find(b => b.current == true);
   user.incomes = user.incomes.filter(i => i.budgetId == current_budget.id);
   user.expenses = user.expenses.filter(e => e.budgetId == current_budget.id);
@@ -51,7 +67,7 @@ user.expenses.forEach(expense => {
   expenseTable['datas'].push({name: `${expense.name}`, amountB: `${expense.amountBudgeted}`, amountS: `${expense.amountSpent}`});
 });
 
-doc.fontSize(14).text('Expense')
+doc.text('Expense')
 doc.moveDown(1);
 doc.table(expenseTable);
 
@@ -74,12 +90,12 @@ user.transactions.forEach(t=> {
     }
 });
 
-doc.fontSize(14).text('Transactions')
+doc.text('Transactions')
 doc.moveDown(1);
 doc.table(transactionTable);
 
 const saved = Number(user.total.totalIncome) - Number(user.total.totalAmountSpent);
-if (saved >= 0)
+if (saved > 0)
   {
       doc.fontSize(14).text(`\nSaved: +N${saved}`);
   }

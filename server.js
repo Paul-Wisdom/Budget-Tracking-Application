@@ -11,6 +11,8 @@ const Income = require("./app/models/income");
 const Transaction = require('./app/models/transaction');
 const Total = require('./app/models/total');
 
+const createPdf = require('./app/utils/pdf-test');
+
 const authRoutes = require('./app/routes/auth');
 const budgetRoutes = require('./app/routes/budget');
 
@@ -49,7 +51,6 @@ Total.belongsTo(User, {foreignKey: 'userId'});
 app.get('/', (req, res, next) => {
     res.json({message: "welcome"});
 });
-
 app.use(authRoutes);
 app.use(budgetRoutes);
 
