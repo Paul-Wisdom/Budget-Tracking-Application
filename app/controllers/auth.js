@@ -1,6 +1,5 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const nodemailer = require('nodemailer');
 const {v4: uuidv4} = require('uuid');
 require('dotenv').config();
 
@@ -9,14 +8,7 @@ const config = require('../config/auth.config');
 const Verification = require("../models/userVerification");
 const NewPassword = require("../models/newPassword");
 
-let transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-        user: process.env.AUTH_EMAIL,
-        pass: process.env.AUTH_PASS
-    },
-    authMethod: 'PLAIN'
-})
+const transporter = require('../utils/nodemailer-transporter');
 
 transporter.verify((error, success) => {
     if(error){

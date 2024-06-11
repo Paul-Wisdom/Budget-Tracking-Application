@@ -1,5 +1,6 @@
 const sequelize = require('./index');
 const Sequelize = require('sequelize');
+const User = require('./user'); 
 
 const Income = sequelize.define('income', {
 

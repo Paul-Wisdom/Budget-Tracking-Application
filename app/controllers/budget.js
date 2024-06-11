@@ -5,11 +5,13 @@ const User = require("../models/user");
 const Transaction = require("../models/transaction");
 const Total = require('../models/total');
 
+const getMonth = require('../utils/getMonth');
+
 const createBudget = (req, res, next) => {
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+   // const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     const user_id = req.user_id;
-    const month_id = new Date().getMonth();
-    const month = months[month_id];
+    // const month_id = new Date().getMonth();
+    const month = getMonth();
 
     Budget.findOne({where: {current: true, userId: user_id}}).then(budget => {
         if(budget)
@@ -123,7 +125,7 @@ const createExpense = (req, res, next) => {
             return res.status(404).send({message: "budget not found", error: true});
           }
           budget_id = budget.id;
-        return budget.createExpense({name: name, amountBudgeted: amountBudgeted, amountSpent: amountSpent});
+        return budget.createExpense({name: name, amountBudgeted: amountBudgeted, amountSpent: amountSpent, userId : user_id});
     }).then(result => {
         console.log(result);
         return Total.findOne({where:{budgetId: budget_id, userId: user_id}});
@@ -391,7 +393,7 @@ const createIncomeTransaction = (req, res,next) => {
             return res.status(404).send({message: "budget not found", error: true});
           }
           budget_id = budget.id;
-        return budget.createIncome({name: name, amount: amount});
+        return budget.createIncome({name: name, amount: amount, userId : user_id});
     }).then(result => {
         console.log(result);
         return Total.findOne({where:{budgetId: budget_id, userId: user_id}});
