@@ -1,5 +1,7 @@
 const Sequelize = require('sequelize');
 
+
+
 const config = require('../config/db.config');
 
 //add port
@@ -12,5 +14,6 @@ const sequelize = new Sequelize(
         dialect:config.DIALECT
     }
 );
+
 
 module.exports = sequelize;

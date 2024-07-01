@@ -78,45 +78,46 @@ const getAccountVerification = (req, res, next) => {
     Verification.findOne({where : {userId : id}}).then(verif => {
         if(!verif)
             {
-                res.status(401).send({messge: msg[0], error: true})
+                return res.status(404).send({messge: msg[0], error: true})
             }
-        if(Date.now > verif.expiresAt)
+        if(Date.now() > verif.expiresAt)
             {
                 verif.destroy().then(result => {
                     return User.findOne({where: {id: id}})
                 }).then(user =>{
                     return user.destroy();
                 }).then(result => {
-                    res.status(401).send({message: msg[1], error: true});
+                    return res.status(403).send({message: msg[1], error: true});
                 }).catch(err => {
                     console.log(err);
-                })
-            }
-            v2 = verif;
-        return bcrypt.compare(uniqueString, verif.string);
-    }).then(match => {
-        console.log("unique match?", match)
-        if(match)
-            {
-                User.findOne({where: {id: id}}).then(user => {
-                    return user.set({verified: true});
-                }).then(result => {
-                    result.save();
-                    v2.destroy().then(result => {
-                        res.json({message: msg[2], error: false})
-                    })
-                }).catch(err => {
-                    console.log(err);
-                    res.json({message: "Error verifing email", error: true})
                 })
             }
             else{
-                return res.json({message: "Invalid link", error: true});
-            }
-
+            v2 = verif;
+        bcrypt.compare(uniqueString, verif.string).then(match => {
+            console.log("unique match?", match)
+            if(match)
+                {
+                    User.findOne({where: {id: id}}).then(user => {
+                        return user.set({verified: true});
+                    }).then(result => {
+                        result.save();
+                        v2.destroy().then(result => {
+                            return res.json({message: msg[2], error: false})
+                        })
+                    }).catch(err => {
+                        console.log(err);
+                        return res.status(500).send({message: "Error verifing email", error: true})
+                    })
+                }
+                else{
+                    return res.status(401).send({message: "Invalid link", error: true});
+                }
+    
+        });}
     }).catch(err => {
         console.log(err);
-        return res.json({message: "Error verifing email", error: true})
+        return res.status(500).send({message: "Error verifing email", error: true})
     })
 }
 const postSignUp = (req, res, next) => {
@@ -126,17 +127,28 @@ const postSignUp = (req, res, next) => {
     const password = req.body.password;
 
     // console.log(name, email, typeof(password));
-
+    if(!name)
+        {
+            return res.status(400).send({message: "name must be provided"});
+        }
+    if(!email)
+        {
+            return res.status(400).send({message: "email must be provided"})
+        }
+    if(!password)
+        {
+            return res.status(400).send({message: "password must be provided"})
+        }
     User.findOne({where: {username: name}}).then(user => {
         if(user)
         {
             console.log("here1");
-           return res.status(403).send({message: "username already in use", error: true});
+           return res.status(409).send({message: "username already in use", error: true});
         }
         User.findOne({where: {email: email}}).then(user => {
             if(user)
             {
-               return res.status(403).send({message: "Email already in use", error: true});
+               return res.status(409).send({message: "Email already in use", error: true});
             }
             console.log("good to go");
             return  bcrypt.hash(password, 12);
@@ -164,7 +176,7 @@ const postSignIn = (req, res, next) => {
     User.findOne({where: {email: email}}).then(user => {
         if(!user)
         {
-            res.status(401).send({message: "wrong email or password", error: true});
+            return res.status(401).send({message: "wrong email or password", error: true});
         }
 
         loggedUser = user;
@@ -175,7 +187,7 @@ const postSignIn = (req, res, next) => {
         {   
             if(loggedUser.verified == false)
                 {
-                    return res.status(401).send({message: "user not verified", error: true});
+                    return res.status(403).send({message: "user not verified", error: true});
                 }
             console.log('logged in');
             const token = jwt.sign({id: loggedUser.id, name: loggedUser.username}, config.secretKey, {algorithm: 'HS256', expiresIn: '1h'});
@@ -187,10 +199,10 @@ const postSignIn = (req, res, next) => {
             }
             res.cookie("jwt", token, cookieOptions);
             // res.json(token);
-            return res.json({message: "cSign In successful, cookie has been sent to browser", error: false});
+            return res.json({message: "Sign In successful, cookie has been sent to browser", error: false});
         }
         else{
-            return res.status(403).send({message: "wrong email or password", error: true});
+            return res.status(401).send({message: "wrong email or password", error: true});
         }
     }).catch(err => {
         console.log(err);
@@ -217,12 +229,12 @@ const protectedRoute = (req, res, next) => {
     console.log(token);
     if(!token)
     {
-        res.status(401).send({message: "No token detected"});
+        return res.status(401).send({message: "No token detected"});
     }
     jwt.verify(token, config.secretKey, (err, decoded) => {
         if(err){
             console.log(err);
-            res.status(401).send({message: "Invalid token detected", error: true});
+            return res.status(401).send({message: "Invalid token detected", error: true});
         }
 
         if(!err)
@@ -236,7 +248,7 @@ const protectedRoute = (req, res, next) => {
 
 const postSignOut = (req, res, next) => {
     res.cookie("jwt", "");
-    res.json({message: "User signed out", error: false});
+    return res.json({message: "User signed out", error: false});
 }
 
 const postPasswordChange = (req, res, next) => {
@@ -246,39 +258,48 @@ const postPasswordChange = (req, res, next) => {
     let Pwd;
     let user;
     console.log("password ",newPassword);
-
+    if(!newPassword)
+        {
+            return res.status(400).send({message: "new password not entered", error: true});
+        }
+    if(!mail)
+        {
+            return res.status(400).send({message: "mail not entered", error: true});
+        }
     User.findOne({where: {email: mail}}).then(user1 => {
+        if(!user1){
+            return res.status(404).send({message: "Account does not exist", error: true});
+        }
         user = user1;
-        return NewPassword.findOne({where: {userId: user.id}}); 
-    }).then(result => {
-        if(result)
-            {
-                result.destroy().then(result => {
-                    Verification.findOne({where: {userId: user_id}}).then(result => {
-                        result.destroy();
-                    })
-                });
-            }
-            bcrypt.hash(newPassword, 12).then(hashedPwd => {
-                Pwd = hashedPwd;
-                // return User.findOne({where : {id : user_id}})
-                console.log(user);
-                if( user && user.verified === true)
-                    {
-                        NewPassword.create({password: Pwd, userId : user_id, createdAt: Date.now(), expiresAt: Date.now() + (6 * 60 * 60 * 1000)})
-                        sendVerificationMail(user, res, type)
-                    }
-                else{
-                    return res.json({message: "This user is not verified", error: true});
+        NewPassword.findOne({where: {userId: user.id}}).then(result => {
+            if(result)
+                {
+                    result.destroy().then(result => {
+                        Verification.findOne({where: {userId: user.id}}).then(result => {
+                            result.destroy();
+                        })
+                    });
                 }
-            }).catch(err => {
+                bcrypt.hash(newPassword, 12).then(hashedPwd => {
+                    Pwd = hashedPwd;
+                    // return User.findOne({where : {id : user_id}})
+                    console.log(user);
+                    if( user && user.verified === true)
+                        {
+                            NewPassword.create({password: Pwd, userId : user.id, createdAt: Date.now(), expiresAt: Date.now() + (6 * 60 * 60 * 1000)})
+                            sendVerificationMail(user, res, type)
+                        }
+                    else{
+                        return res.status(403).send({message: "This user is not verified", error: true});
+                    }
+                })
+            }) 
+    }).catch(err => {
                 console.log(err);
             })
-    })
 }
 
 
-//after clicking the link sent to email the user should enter his new password which is sent to the db for saving
 const getPasswordVerification = (req, res, next) => {
 
     const id = req.params.id;
@@ -292,56 +313,58 @@ const getPasswordVerification = (req, res, next) => {
     Verification.findOne({where : {userId : id}}).then(verif => {
         if(!verif)
             {
-                res.status(401).send({messge: msg[0], error: true})
+                return res.status(404).send({messge: msg[0], error: true})
             }
-        if(Date.now > verif.expiresAt)
+        if(Date.now() > verif.expiresAt)
             {
                 verif.destroy().then(result => {
-                    res.status(401).send({message: msg[1], error: true});
+                    return res.status(403).send({message: msg[1], error: true});
                 }).catch(err => {
                     console.log(err);
                 })
             }
-            v2 = verif;
-        return bcrypt.compare(uniqueString, verif.string);
-    }).then(match => {
-        console.log("unique match?", match)
-        if(match)
-            {
-                NewPassword.findOne({where: {userId : id}}).then(result => {
-                if(!result)
-                    {
-                        res.status(401).send({messge: msg[0], error: true})
-                    }
-                if(Date.now > result.expiresAt)
-                    {
-                        result.destroy().then(result => {
-                        res.status(401).send({message: msg[1], error: true});
-                        }).catch(err => {
-                        console.log(err); })
-                    }
-                    n2 = result;
-                    return User.findOne({where: {id: id}})
-                    }).then(user => {
-                        return user.set({password: n2.password})
-                    }).then(result => {
-                        return result.save();
-                    }).then(result=> {
-                        return v2.destroy();
-                    }).then(result=> {
-                        return n2.destroy();
-                    }).then(result=> {
-                        res.json({message: msg[2], error: false});
-                    }).catch(err => {
-                        console.log(err);
-                        res.json({message: "Error verifing email", error: true})
-                    })
-
-            }
             else{
-                return res.json({message: "Invalid link", error: true});
-            }
-
+            v2 = verif;
+        bcrypt.compare(uniqueString, verif.string).then(match => {
+            console.log("unique match?", match)
+            if(match)
+                {
+                    NewPassword.findOne({where: {userId : id}}).then(result => {
+                    if(!result)
+                        {
+                            return res.status(404).send({messge: msg[0], error: true})
+                        }
+                    if(Date.now() > result.expiresAt)
+                        {
+                            result.destroy().then(result => {
+                            return res.status(403).send({message: msg[1], error: true});
+                            }).catch(err => {
+                            console.log(err); })
+                        }
+                        else{
+                        n2 = result;
+                         User.findOne({where: {id: id}}).then(user => {
+                            return user.set({password: n2.password})
+                        }).then(result => {
+                            return result.save();
+                        }).then(result=> {
+                            return v2.destroy();
+                        }).then(result=> {
+                            return n2.destroy();
+                        }).then(result=> {
+                            return res.json({message: msg[2], error: false});
+                        })}
+                        }).catch(err => {
+                            console.log(err);
+                           return res.status(500).send({message: "Error verifing email", error: true})
+                        })
+    
+                }
+                else{
+                    return res.status(401).send({message: "Invalid link", error: true});
+                }
+    
+        });}
     }).catch(err => {
         console.log(err);
         return res.json({message: "Error verifing email", error: true})
