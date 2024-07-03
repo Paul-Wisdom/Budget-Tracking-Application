@@ -24,6 +24,7 @@ Income.belongsTo(User, {foreignKey: 'userId'});
 Total.belongsTo(User, {foreignKey: 'userId'});
 
 const createServer = require('./app/utils/createServer');
+
 const app = createServer();
 //use render cronjob to access this endpoint on the first of every month by midnight
 app.get('/trigger-cron', (req, res) => {

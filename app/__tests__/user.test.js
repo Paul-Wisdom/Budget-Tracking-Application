@@ -1,13 +1,16 @@
 const supertest = require('supertest');
-const createServer = require('../utils/createServer');
-const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const {v4: uuidv4} = require('uuid');
-const Verification = require('../models/userVerification')
-const transporter = require('../utils/nodemailer-transporter');
 const jwt = require('jsonwebtoken');
-const config = require('../config/auth.config');
+
+const transporter = require('../utils/nodemailer-transporter');
+const createServer = require('../utils/createServer');
+
+const User = require('../models/user');
+const Verification = require('../models/userVerification')
 const NewPassword = require('../models/newPassword');
+
+const config = require('../config/auth.config');
 
 jest.mock('../models/newPassword', () => {
     const NewPassword = jest.fn();

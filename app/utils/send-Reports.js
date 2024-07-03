@@ -1,6 +1,7 @@
 const fetchUsers = require('./fetchAllUsers');
 const generatePdf = require('./generatePdf');
 const getMonth = require('./getMonth');
+
 const fs = require('fs');
 const path = require('path');
 
@@ -11,6 +12,9 @@ const Total = require('../models/total');
 const month = getMonth();
 const transporter = require('../utils/nodemailer-transporter');
 
+/*
+ * Sends mail to a single user
+ */
 function sendEmail(user, transporter) {
   const pdfPath = generatePdf(user);
 
@@ -46,6 +50,9 @@ function sendEmail(user, transporter) {
     });
 }
 
+/*
+ * Sends mail to all users in db
+ */
 function sendEmails() {
   let allUsers;
   let curr_user;

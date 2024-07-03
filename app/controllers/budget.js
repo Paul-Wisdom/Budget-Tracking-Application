@@ -128,6 +128,7 @@ const createExpense = (req, res, next) => {
     const amountBudgeted = req.body.amountBudgeted;
     const amountSpent = 0;
     let budget_id;
+    
     if(!name)
         {
            return res.status(400).send({message: "Expense name not provided"})
@@ -159,7 +160,7 @@ const createExpense = (req, res, next) => {
 const getExpense = (req, res, next) => {
     const user_id = req.user_id;
     const expense_id = req.params.expense_id;
-    const budget_id = req.body.budget_id;
+    const budget_id = req.query.budget_id;
 
     if(!budget_id)
         {
@@ -180,7 +181,7 @@ const getExpense = (req, res, next) => {
 const getAllExpenses = (req, res, next) => {
 
     const user_id = req.user_id;
-    const budget_id = req.body.budget_id;
+    const budget_id = req.query.budget_id;
     if(!budget_id)
         {
             return res.status(400).send({message: "budget id not passed with request", error: true});
@@ -298,7 +299,8 @@ const deleteExpense = (req, res, next) => {
 const getAllIncome = (req, res, next) => {
 
     const user_id = req.user_id;
-    const budget_id = req.body.budget_id;
+    const budget_id = req.query.budget_id;
+
     if(!budget_id)
         {
             return res.status(400).send({message: "budget id not passed with request", error: true});
@@ -320,7 +322,8 @@ const getIncome = (req, res, next) => {
 
     const user_id = req.user_id;
     const income_id = req.params.income_id;
-    const budget_id = req.body.budget_id;
+    const budget_id = req.query.budget_id;
+
     if(!budget_id)
         {
             return res.status(400).send({message: "budget id not passed with request", error: true});
@@ -387,6 +390,7 @@ const createExpenseTransaction = (req, res, next) => {
     const note = req.body.note;
     let transaction_name;
     let budget_id;
+
     if(!expense_id){
         return res.status(400).send({message: "expense id not passed with request"});
     }
@@ -431,6 +435,7 @@ const createIncomeTransaction = (req, res,next) => {
     const name = req.body.name;
     const note = req.body.note;
     let budget_id;
+
     if(!name){
         return res.status(400).send({message: "name not passed with request"});
     }

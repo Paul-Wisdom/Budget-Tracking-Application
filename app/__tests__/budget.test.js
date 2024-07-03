@@ -1,12 +1,15 @@
 const supertest = require('supertest');
+const jwt = require('jsonwebtoken');
+
 const createServer = require('../utils/createServer');
+const getMonth = require('../utils/getMonth');
+
 const User = require('../models/user');
 const Budget = require('../models/budget');
 const Total = require('../models/total');
 const Expense = require('../models/expense');
 const Transaction = require('../models/transaction');
-const getMonth = require('../utils/getMonth');
-const jwt = require('jsonwebtoken');
+
 const config = require('../config/auth.config');
 
 jest.mock('../models/user', () => {
@@ -51,9 +54,11 @@ const app = createServer();
 
 describe("Testing Budget", () => {
     let token;
+
     beforeAll(() => {
         token = jwt.sign({id: 1},config.secretKey , {expiresIn: '1h'});
     })
+
     describe("creating budget", () => {
         it("with user not logged in should return 401", async () => {
 
@@ -65,6 +70,7 @@ describe("Testing Budget", () => {
             const mockUser = {name: "john", email: "test@test.com", id: 1, password: "password", verified: true};
             const mockBudget = {id: 1, current: true, month: getMonth(), userId: mockUser.id };
             const mockTotal = {userId: mockUser.id, budgetId: mockBudget.id, totalAmountBudgeted: 0, totalAmountSpent: 0, totalIncome: 0};
+            
             Budget.findOne.mockResolvedValue(null);
             User.findByPk.mockResolvedValue(mockUser);
             const userMock = await User.findByPk();
@@ -79,6 +85,7 @@ describe("Testing Budget", () => {
             const mockUser = {name: "john", email: "test@test.com", id: 1, password: "password", verified: true};
             const mockBudget = {id: 1, current: true, month: getMonth(), userId: mockUser.id };
             const mockTotal = {userId: mockUser.id, budgetId: mockBudget.id, totalAmountBudgeted: 0, totalAmountSpent: 0, totalIncome: 0};
+            
             Budget.findOne.mockResolvedValue(mockBudget);
             const budgetMock = await Budget.findOne();
             budgetMock.set = jest.fn().mockResolvedValue({...mockBudget, current: false});
@@ -116,6 +123,7 @@ describe("Testing Budget", () => {
             const input = {budget_id: 1};
             const mockUser = {name: "john", email: "test@test.com", id: 1, password: "password", verified: true};
             const mockBudget = {id: 1, current: true, month: getMonth(), userId: mockUser.id };
+            
             User.findByPk.mockResolvedValue(mockUser);
             Budget.findOne.mockResolvedValue(null);
             const response = await supertest(app).post('/api/delete-budget').set('Cookie', `jwt=${token}`).send(input);
@@ -128,6 +136,7 @@ describe("Testing Budget", () => {
             const input = {budget_id: 1};
             const mockUser = {name: "john", email: "test@test.com", id: 1, password: "password", verified: true};
             const mockBudget = {id: 1, current: true, month: getMonth(), userId: mockUser.id };
+            
             User.findByPk.mockResolvedValue(mockUser);
             Budget.findOne.mockResolvedValue(mockBudget);
             const budgetMock = await Budget.findOne();
@@ -202,6 +211,7 @@ describe("Testing Budget", () => {
             const mockBudget = {id: 1, current: true, month: getMonth(), userId: 1 };
             const mockTotal = {userId: 1, budgetId: mockBudget.id, totalAmountBudgeted: 0, totalAmountSpent: 0, totalIncome: 0};
             const mockExpense = {name: input.name, amountBudgeted: input.amountBudgeted, amountSpent: 0, userId : 1}
+            
             Budget.findOne.mockResolvedValue(mockBudget);
             const budgetMock = await Budget.findOne();
             budgetMock.createExpense = jest.fn().mockResolvedValue(mockExpense);
@@ -225,21 +235,22 @@ describe("Testing Budget", () => {
         });
 
         it("getting a single expense without budget existing should return 404", async () => {
-            const input = {budget_id: 1};
+            // const input = {budget_id: 1};
             Budget.findOne.mockResolvedValue(null);
-            const response = await supertest(app).get('/api/get-expense/1').set('Cookie', `jwt=${token}`).send(input);
+            const response = await supertest(app).get('/api/get-expense/1?budget_id=1').set('Cookie', `jwt=${token}`)
 
             expect(response.status).toBe(404);
         });
 
         it("getting a single expense successfully should return 200", async () => {
-            const input = {budget_id: 1};
+            // const input = {budget_id: 1};
             const mockBudget = {id: 1, current: true, month: getMonth(), userId: 1 };
-            const mockExpense = {name: input.name, amountBudgeted: input.amountBudgeted, amountSpent: 0, userId : 1}
+            const mockExpense = {name: "Rent", amountBudgeted: 10000, amountSpent: 0, userId : 1}
+            
             Budget.findOne.mockResolvedValue(mockBudget);
             const budgetMock = await Budget.findOne();
             budgetMock.getExpenses = jest.fn().mockResolvedValue([mockExpense]);
-            const response = await supertest(app).get('/api/get-expense/1').set('Cookie', `jwt=${token}`).send(input);
+            const response = await supertest(app).get('/api/get-expense/1?budget_id=1').set('Cookie', `jwt=${token}`)
 
             expect(response.status).toBe(200);
         });
@@ -252,21 +263,22 @@ describe("Testing Budget", () => {
         });
 
         it("getting multiple expense without budget existing should return 404", async () => {
-            const input = {budget_id: 1};
+            // const input = {budget_id: 1};
             Budget.findOne.mockResolvedValue(null);
-            const response = await supertest(app).get('/api/get-expense/all').set('Cookie', `jwt=${token}`).send(input);
+            const response = await supertest(app).get('/api/get-expense/all?budget_id=1').set('Cookie', `jwt=${token}`);
 
             expect(response.status).toBe(404);
         });
 
         it("getting multiple expense successfully should return 200", async () => {
-            const input = {budget_id: 1};
+            // const input = {budget_id: 1};
             const mockBudget = {id: 1, current: true, month: getMonth(), userId: 1 };
-            const mockExpense = {name: input.name, amountBudgeted: input.amountBudgeted, amountSpent: 0, userId : 1}
+            const mockExpense = {name: "Rent", amountBudgeted: 10000, amountSpent: 0, userId : 1}
+            
             Budget.findOne.mockResolvedValue(mockBudget);
             const budgetMock = await Budget.findOne();
             budgetMock.getExpenses = jest.fn().mockResolvedValue([mockExpense]);
-            const response = await supertest(app).get('/api/get-expense/all').set('Cookie', `jwt=${token}`).send(input);
+            const response = await supertest(app).get('/api/get-expense/all?budget_id=1').set('Cookie', `jwt=${token}`);
 
             expect(response.status).toBe(200);
         });
@@ -298,6 +310,7 @@ describe("Testing Budget", () => {
             const input = {budget_id: 1, amountBudgeted: 5000};
             const mockExpense = {name: "Rent", amountBudgeted: 3000, amountSpent: 0, userId : 1}
             const mockTotal = {userId: 1, budgetId: 1, totalAmountBudgeted: 0, totalAmountSpent: 0, totalIncome: 0};
+            
             Expense.findOne.mockResolvedValue(mockExpense);
             const expenseMock = await Expense.findOne();
             expenseMock.set = jest.fn().mockResolvedValue({...mockExpense, amountBudgeted: input.amountBudgeted});
@@ -332,6 +345,7 @@ describe("Testing Budget", () => {
             const mockTotal = {userId: 1, budgetId: 1, totalAmountBudgeted: 0, totalAmountSpent: 0, totalIncome: 0};
             const mockExpense = {name: "Rent", amountBudgeted: 3000, amountSpent: 0, userId : 1}
             const mockTransaction = {name: "Rent", userId: 1, id: 1, type: "expense", amount: 50000, note: "Rent payment"};
+            
             Expense.findOne.mockResolvedValue(mockExpense);
             Transaction.findOne.mockResolvedValue(mockTransaction);
             const response = await supertest(app).post('/api/delete-expense/1').set('Cookie', `jwt=${token}`).send(input);
@@ -343,6 +357,7 @@ describe("Testing Budget", () => {
             const mockTotal = {userId: 1, budgetId: 1, totalAmountBudgeted: 0, totalAmountSpent: 0, totalIncome: 0};
             const mockExpense = {name: "Rent", amountBudgeted: 3000, amountSpent: 0, userId : 1}
             // const mockTransaction = {name: "Rent", userId: 1, id: 1, type: "expense", amount: 50000, note: "Rent payment"};
+            
             Expense.findOne.mockResolvedValue(mockExpense);
             Transaction.findOne.mockResolvedValue(null);
             const expenseMock = await Expense.findOne();
@@ -365,21 +380,22 @@ describe("Testing Budget", () => {
         });
 
         it("getting a single income without budget existing should return 404", async () => {
-            const input = {budget_id: 1};
+            // const input = {budget_id: 1};
             Budget.findOne.mockResolvedValue(null);
-            const response = await supertest(app).get('/api/get-income/1').set('Cookie', `jwt=${token}`).send(input);
+            const response = await supertest(app).get('/api/get-income/1?budget_id=1').set('Cookie', `jwt=${token}`);
 
             expect(response.status).toBe(404);
         });
 
         it("getting a single income successfully should return 200", async () => {
-            const input = {budget_id: 1};
+            // const input = {budget_id: 1};
             const mockBudget = {id: 1, current: true, month: getMonth(), userId: 1 };
             const mockIncome = {name: "salary", amount: 10000 , userId : 1}
+            
             Budget.findOne.mockResolvedValue(mockBudget);
             const budgetMock = await Budget.findOne();
             budgetMock.getIncomes = jest.fn().mockResolvedValue([mockIncome]);
-            const response = await supertest(app).get('/api/get-income/1').set('Cookie', `jwt=${token}`).send(input);
+            const response = await supertest(app).get('/api/get-income/1?budget_id=1').set('Cookie', `jwt=${token}`);
 
             expect(response.status).toBe(200);
         });
@@ -391,21 +407,22 @@ describe("Testing Budget", () => {
         });
 
         it("getting multiple incomes without budget existing should return 404", async () => {
-            const input = {budget_id: 1};
+            // const input = {budget_id: 1};
             Budget.findOne.mockResolvedValue(null);
-            const response = await supertest(app).get('/api/get-income/all').set('Cookie', `jwt=${token}`).send(input);
+            const response = await supertest(app).get('/api/get-income/all?budget_id=1').set('Cookie', `jwt=${token}`);
 
             expect(response.status).toBe(404);
         });
 
         it("getting multiple incomes successfully should return 200", async () => {
-            const input = {budget_id: 1};
+            // const input = {budget_id: 1};
             const mockBudget = {id: 1, current: true, month: getMonth(), userId: 1 };
             const mockIncome = {name: "salary", amount: 10000 , userId : 1}
+            
             Budget.findOne.mockResolvedValue(mockBudget);
             const budgetMock = await Budget.findOne();
             budgetMock.getIncomes = jest.fn().mockResolvedValue([mockIncome]);
-            const response = await supertest(app).get('/api/get-income/all').set('Cookie', `jwt=${token}`).send(input);
+            const response = await supertest(app).get('/api/get-income/all?budget_id=1').set('Cookie', `jwt=${token}`);
 
             expect(response.status).toBe(200);
         });

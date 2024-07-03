@@ -4,6 +4,10 @@ const Income = require("../models/income");
 const Transaction = require('../models/transaction');
 const Total = require('../models/total');
 const Budget = require('../models/budget');
+
+/*
+ *  This function returns all users in the db and their associated models
+ */
 function fetchUsers() {
         return User.findAll({
           include: [
@@ -13,14 +17,12 @@ function fetchUsers() {
             { model: Total},
             { model: Budget}
           ]
-        })
-      .then(users => {
+        }).then(users => {
         return users;
-      })
-      .catch(error => {
+      }).catch(error => {
         console.error('Unable to fetch all users:', error);
         throw error;
       });
-  }
+}
   
   module.exports = fetchUsers;

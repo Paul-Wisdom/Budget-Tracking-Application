@@ -120,6 +120,7 @@ const getAccountVerification = (req, res, next) => {
         return res.status(500).send({message: "Error verifing email", error: true})
     })
 }
+
 const postSignUp = (req, res, next) => {
 
     const name = req.body.name;
@@ -213,6 +214,7 @@ const postSignIn = (req, res, next) => {
 const protectedRoute = (req, res, next) => {
     const cookies = req.headers.cookie;
     let token;
+
     if(cookies){
         const cookieArray = cookies.split(';');
         const cookieMap = {};
@@ -257,6 +259,7 @@ const postPasswordChange = (req, res, next) => {
     const mail = req.body.email;
     let Pwd;
     let user;
+
     console.log("password ",newPassword);
     if(!newPassword)
         {
@@ -299,15 +302,14 @@ const postPasswordChange = (req, res, next) => {
             })
 }
 
-
 const getPasswordVerification = (req, res, next) => {
 
     const id = req.params.id;
     const uniqueString = req.params.uniqueString;
 
     console.log(id, uniqueString)
-    let v2;
-    let n2;
+    let verif2;
+    let newPassword2;
 
     let msg = ["Account does not exist or password changed", "Link has expired, Click on forgot password again", "Password changed successfully"];
     Verification.findOne({where : {userId : id}}).then(verif => {
@@ -324,7 +326,7 @@ const getPasswordVerification = (req, res, next) => {
                 })
             }
             else{
-            v2 = verif;
+            verif2 = verif;
         bcrypt.compare(uniqueString, verif.string).then(match => {
             console.log("unique match?", match)
             if(match)
@@ -342,15 +344,15 @@ const getPasswordVerification = (req, res, next) => {
                             console.log(err); })
                         }
                         else{
-                        n2 = result;
+                        newPassword2 = result;
                          User.findOne({where: {id: id}}).then(user => {
-                            return user.set({password: n2.password})
+                            return user.set({password: newPassword2.password})
                         }).then(result => {
                             return result.save();
                         }).then(result=> {
-                            return v2.destroy();
+                            return verif2.destroy();
                         }).then(result=> {
-                            return n2.destroy();
+                            return newPassword2.destroy();
                         }).then(result=> {
                             return res.json({message: msg[2], error: false});
                         })}
@@ -370,7 +372,6 @@ const getPasswordVerification = (req, res, next) => {
         return res.json({message: "Error verifing email", error: true})
     })
 }
-
 
 module.exports = {
     postSignUp,
