@@ -10,8 +10,8 @@ Router.get('/api/get-budget/all', authController.protectedRoute, budgetControlle
 Router.get('/api/get-budget/current', authController.protectedRoute, budgetController.getCurrentBudget);
 Router.get('/api/get-budget/:budget_id', authController.protectedRoute, budgetController.getBudget);
 Router.post('/api/create-expense', authController.protectedRoute, budgetController.createExpense);
-Router.post('/api/edit-expense/:expense_id', authController.protectedRoute, budgetController.editExpense);
-Router.post('/api/delete-expense/:expense_id', authController.protectedRoute, budgetController.deleteExpense);
+Router.put('/api/edit-expense/:expense_id', authController.protectedRoute, budgetController.editExpense);
+Router.delete('/api/delete-expense/:expense_id', authController.protectedRoute, budgetController.deleteExpense);
 Router.get('/api/get-expense/all', authController.protectedRoute, budgetController.getAllExpenses);
 Router.get('/api/get-expense/:expense_id', authController.protectedRoute, budgetController.getExpense);
 // Router.post('/api/create-income', authController.protectedRoute, budgetController.createIncome);

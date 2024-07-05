@@ -202,7 +202,7 @@ const getAllExpenses = (req, res, next) => {
 const editExpense = (req, res, next) => {
 
     const user_id = req.user_id;
-    // const name = req.body.name;
+    const name = req.body.name;
     const amountBudgeted = req.body.amountBudgeted;
     const expense_id = req.params.expense_id;
     const budget_id = req.body.budget_id;
@@ -224,17 +224,16 @@ const editExpense = (req, res, next) => {
             }
         oldAmountBudgeted = expense.amountBudgeted;
         // let name2 = name ? name : expense.name;
-        expense.set({ amountBudgeted: amountBudgeted}).then(result => {
-            result.save();
-            console.log(result);
-            response = result;
-            return Total.findOne({where: {budgetId: budget_id, userId: user_id}});
-        }).then(total => {
-            return total.set({totalAmountBudgeted: Number(total.totalAmountBudgeted) - Number(oldAmountBudgeted) + Number(amountBudgeted)});
-        }).then(result => {
-            result.save();
-            return res.json(response);
-        })
+        expense.set({name: name,  amountBudgeted: amountBudgeted})
+        expense.save();
+        console.log(expense);
+        response = expense;
+        return Total.findOne({where: {budgetId: budget_id, userId: user_id}});
+    }).then(total => {
+        return total.set({totalAmountBudgeted: Number(total.totalAmountBudgeted) - Number(oldAmountBudgeted) + Number(amountBudgeted)});
+    }).then(result => {
+        result.save();
+        return res.json(response);
     }).catch(err => {
         console.log(err);
     })
@@ -243,9 +242,11 @@ const editExpense = (req, res, next) => {
 const deleteExpense = (req, res, next) => {
     const user_id = req.user_id;
     const expense_id = req.params.expense_id;
-    const budget_id = req.body.budget_id;
+    const budget_id = req.query.budget_id;
+
     let oldAmountBudgeted;
 
+    console.log(budget_id);
     if(!budget_id)
         {
             return res.status(400).send({message: "budget id not passed with request", error: true});
@@ -405,24 +406,23 @@ const createExpenseTransaction = (req, res, next) => {
             return res.status(404).send({message: "budget not found"});
         }
         budget_id = budget.id;
-        Expense.findOne({where: {id: expense_id, budgetId: budget_id}}).then(expense => {
-            if(!expense)
-                {
-                    return res.status(404).send({message: "Expense not found"});
-                }
-            transaction_name = expense.name;
-            expense.set({amountSpent: Number(expense.amountSpent) + Number(amount)}).then(result => {
-                result.save();
-                return Total.findOne({where:{budgetId: budget_id, userId: user_id}});
-            }).then(total => {
-                return total.set({totalAmountSpent: Number(total.totalAmountSpent) + Number(amount)})
-            }).then(total => {
-                total.save();
-                return Transaction.create({name: transaction_name, amount: amount, note: note, type: "Expense", userId: user_id});
-            }).then(result => {
-                return res.json(result);
-            });
-        });
+        return Expense.findOne({where: {id: expense_id, budgetId: budget_id}})
+    }).then(expense => {
+        if(!expense)
+            {
+                return res.status(404).send({message: "Expense not found"});
+            }
+        transaction_name = expense.name;
+        expense.set({amountSpent: Number(expense.amountSpent) + Number(amount)});
+        expense.save();
+        return Total.findOne({where:{budgetId: budget_id, userId: user_id}});
+    }).then(total => {
+        return total.set({totalAmountSpent: Number(total.totalAmountSpent) + Number(amount)})
+    }).then(total => {
+        total.save();
+        return Transaction.create({name: transaction_name, amount: amount, note: note, type: "Expense", userId: user_id});
+    }).then(result => {
+        return res.json(result);
     }).catch(err => {
         console.log(err);
     })

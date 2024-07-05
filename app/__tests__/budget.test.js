@@ -286,14 +286,14 @@ describe("Testing Budget", () => {
     describe("Editing Expense", () => {
         it("without budget id should return 400", async () => {
             const input = {amountBudgeted: 5000};
-            const response = await supertest(app).post('/api/edit-expense/1').set('Cookie', `jwt=${token}`).send(input);
+            const response = await supertest(app).put('/api/edit-expense/1').set('Cookie', `jwt=${token}`).send(input);
 
             expect(response.status).toBe(400);
         });
 
         it("without amount budgeted should return 400", async () => {
             const input = {budget_id: 1};
-            const response = await supertest(app).post('/api/edit-expense/1').set('Cookie', `jwt=${token}`).send(input);
+            const response = await supertest(app).put('/api/edit-expense/1').set('Cookie', `jwt=${token}`).send(input);
 
             expect(response.status).toBe(400);
         });
@@ -301,7 +301,7 @@ describe("Testing Budget", () => {
         it("when the expense does not exist should return 404", async () => {
             const input = {budget_id: 1, amountBudgeted: 5000};
             Expense.findOne.mockResolvedValue(null);
-            const response = await supertest(app).post('/api/edit-expense/1').set('Cookie', `jwt=${token}`).send(input);
+            const response = await supertest(app).put('/api/edit-expense/1').set('Cookie', `jwt=${token}`).send(input);
             
             expect(response.status).toBe(404);
         });
@@ -314,14 +314,14 @@ describe("Testing Budget", () => {
             Expense.findOne.mockResolvedValue(mockExpense);
             const expenseMock = await Expense.findOne();
             expenseMock.set = jest.fn().mockResolvedValue({...mockExpense, amountBudgeted: input.amountBudgeted});
-            const expenseSave = await expenseMock.set(); 
-            expenseSave.save = jest.fn().mockResolvedValue("success");
+            // const expenseSave = await expenseMock.set(); 
+            expenseMock.save = jest.fn().mockResolvedValue("success");
             Total.findOne.mockResolvedValue(mockTotal);
             const totalMock = await Total.findOne();
             totalMock.set = jest.fn().mockResolvedValue({...mockTotal})
             const totalSave = await totalMock.set();
             totalSave.save = jest.fn().mockResolvedValue("success");
-            const response = await supertest(app).post('/api/edit-expense/1').set('Cookie', `jwt=${token}`).send(input);
+            const response = await supertest(app).put('/api/edit-expense/1').set('Cookie', `jwt=${token}`).send(input);
             
             expect(response.status).toBe(200);
             expect(Total.findOne).toHaveBeenCalled();
@@ -329,31 +329,31 @@ describe("Testing Budget", () => {
     });
     describe("Deleting expense", () => {
         it("without budget id should return 400", async () => {
-            const response = await supertest(app).post('/api/delete-expense/1').set('Cookie', `jwt=${token}`);
+            const response = await supertest(app).delete('/api/delete-expense/1').set('Cookie', `jwt=${token}`);
             
             expect(response.status).toBe(400);
         })
         it("when the expense does not exist should return 404", async () => {
-            const input = {budget_id: 1};
+            // const input = {budget_id: 1};
             Expense.findOne.mockResolvedValue(null);
-            const response = await supertest(app).post('/api/delete-expense/1').set('Cookie', `jwt=${token}`).send(input);
+            const response = await supertest(app).delete('/api/delete-expense/1?budget_id=1').set('Cookie', `jwt=${token}`);
             
             expect(response.status).toBe(404);
         });
         it("when a transaction has been carried out on the expense server should return 403", async () => {
-            const input = {budget_id: 1};
-            const mockTotal = {userId: 1, budgetId: 1, totalAmountBudgeted: 0, totalAmountSpent: 0, totalIncome: 0};
+            // const input = {budget_id: 1};
+            // const mockTotal = {userId: 1, budgetId: 1, totalAmountBudgeted: 0, totalAmountSpent: 0, totalIncome: 0};
             const mockExpense = {name: "Rent", amountBudgeted: 3000, amountSpent: 0, userId : 1}
             const mockTransaction = {name: "Rent", userId: 1, id: 1, type: "expense", amount: 50000, note: "Rent payment"};
             
             Expense.findOne.mockResolvedValue(mockExpense);
             Transaction.findOne.mockResolvedValue(mockTransaction);
-            const response = await supertest(app).post('/api/delete-expense/1').set('Cookie', `jwt=${token}`).send(input);
+            const response = await supertest(app).delete('/api/delete-expense/1?budget_id=1').set('Cookie', `jwt=${token}`);
             
             expect(response.status).toBe(403);
         }); 
         it("when no transaction has been carried out on the expense server should return 200", async () => {
-            const input = {budget_id: 1};
+            // const input = {budget_id: 1};
             const mockTotal = {userId: 1, budgetId: 1, totalAmountBudgeted: 0, totalAmountSpent: 0, totalIncome: 0};
             const mockExpense = {name: "Rent", amountBudgeted: 3000, amountSpent: 0, userId : 1}
             // const mockTransaction = {name: "Rent", userId: 1, id: 1, type: "expense", amount: 50000, note: "Rent payment"};
@@ -366,7 +366,7 @@ describe("Testing Budget", () => {
             const totalMock = await Total.findOne();
             totalMock.set = jest.fn().mockResolvedValue(mockTotal);
             totalMock.save = jest.fn().mockResolvedValue("success");
-            const response = await supertest(app).post('/api/delete-expense/1').set('Cookie', `jwt=${token}`).send(input);
+            const response = await supertest(app).delete('/api/delete-expense/1?budget_id=1').set('Cookie', `jwt=${token}`);
             
             expect(response.status).toBe(200);
         });    
@@ -493,8 +493,8 @@ describe("Testing Budget", () => {
 
             const expenseMock = await Expense.findOne();
             expenseMock.set = jest.fn().mockResolvedValue({...mockExpense, amountSpent: mockExpense.amountSpent + input.amount});
-            const expenseSave = await expenseMock.set();
-            expenseSave.save = jest.fn().mockResolvedValue("success");
+            // const expenseSave = await expenseMock.set();
+            expenseMock.save = jest.fn().mockResolvedValue("success");
             Total.findOne.mockResolvedValue(mockTotal);
             const totalMock = await Total.findOne();
             totalMock.set = jest.fn().mockResolvedValue(mockTotal);

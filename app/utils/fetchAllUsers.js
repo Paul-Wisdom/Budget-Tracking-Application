@@ -6,10 +6,10 @@ const Total = require('../models/total');
 const Budget = require('../models/budget');
 
 /*
- *  This function returns all users in the db and their associated models
+ *  This function returns all verified users in the db and their associated models
  */
 function fetchUsers() {
-        return User.findAll({
+        return User.findAll({where: {verified: true},
           include: [
             { model: Income },
             { model: Expense },
