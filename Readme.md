@@ -71,8 +71,8 @@ Guidelines for contributing to the project.
 coming soon
 
 ## Testing
-How to run the tests and test coverage information.
-coming soon
+This application uses jest and supertest for unit and end to end tests.
+You can test the application with the command `npm run test`
 
 ## Deployment
 Instructions on how to deploy the project.
