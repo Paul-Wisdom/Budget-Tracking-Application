@@ -66,7 +66,7 @@ describe("Testing Budget", () => {
             expect(response.status).toBe(401)
         });
 
-        it("with user logged in with no previous budget should return 200", async () => {
+        it("with user logged in with no previous budget should return 201", async () => {
             const mockUser = {name: "john", email: "test@test.com", id: 1, password: "password", verified: true};
             const mockBudget = {id: 1, current: true, month: getMonth(), userId: mockUser.id };
             const mockTotal = {userId: mockUser.id, budgetId: mockBudget.id, totalAmountBudgeted: 0, totalAmountSpent: 0, totalIncome: 0};
@@ -78,10 +78,10 @@ describe("Testing Budget", () => {
             Total.create.mockResolvedValue(mockTotal);
             const response = await supertest(app).post('/api/create-budget').set('Cookie', `jwt=${token}`);
 
-            expect(response.status).toBe(200);
+            expect(response.status).toBe(201);
         });
 
-        it("with user logged in with previous budget should return 200", async () => {
+        it("with user logged in with previous budget should return 201", async () => {
             const mockUser = {name: "john", email: "test@test.com", id: 1, password: "password", verified: true};
             const mockBudget = {id: 1, current: true, month: getMonth(), userId: mockUser.id };
             const mockTotal = {userId: mockUser.id, budgetId: mockBudget.id, totalAmountBudgeted: 0, totalAmountSpent: 0, totalIncome: 0};
@@ -96,13 +96,13 @@ describe("Testing Budget", () => {
             Total.create.mockResolvedValue(mockTotal);
             const response = await supertest(app).post('/api/create-budget').set('Cookie', `jwt=${token}`);
 
-            expect(response.status).toBe(200);
+            expect(response.status).toBe(201);
             // const response = await supertest(app).post('/api/create-budget').set('Cookie', `jwt=${token}`);
         });
     })
     describe("Deleting Budget", () => {
         it("with user logged out should return 401", async () => {
-            const response = await supertest(app).post('/api/delete-budget');
+            const response = await supertest(app).delete('/api/delete-budget');
 
             expect(response.status).toBe(401);
 
@@ -114,7 +114,7 @@ describe("Testing Budget", () => {
             // const mockBudget = {id: 1, current: true, month: getMonth(), userId: mockUser.id };
             // User.findByPk.mockResolvedValue(mockUser);
             // Budget.findOne.mockResolvedValue(null);
-            const response = await supertest(app).post('/api/delete-budget').set('Cookie', `jwt=${token}`);
+            const response = await supertest(app).delete('/api/delete-budget').set('Cookie', `jwt=${token}`);
 
             expect(response.status).toBe(400);
         });
@@ -126,13 +126,13 @@ describe("Testing Budget", () => {
             
             User.findByPk.mockResolvedValue(mockUser);
             Budget.findOne.mockResolvedValue(null);
-            const response = await supertest(app).post('/api/delete-budget').set('Cookie', `jwt=${token}`).send(input);
+            const response = await supertest(app).delete('/api/delete-budget').set('Cookie', `jwt=${token}`).send(input);
 
             expect(response.status).toBe(404);
 
         });
 
-        it("successsfully should return 200", async () => {
+        it("successsfully should return 204", async () => {
             const input = {budget_id: 1};
             const mockUser = {name: "john", email: "test@test.com", id: 1, password: "password", verified: true};
             const mockBudget = {id: 1, current: true, month: getMonth(), userId: mockUser.id };
@@ -141,9 +141,9 @@ describe("Testing Budget", () => {
             Budget.findOne.mockResolvedValue(mockBudget);
             const budgetMock = await Budget.findOne();
             budgetMock.destroy = jest.fn().mockResolvedValue("success");
-            const response = await supertest(app).post('/api/delete-budget').set('Cookie', `jwt=${token}`).send(input);
+            const response = await supertest(app).delete('/api/delete-budget').set('Cookie', `jwt=${token}`).send(input);
 
-            expect(response.status).toBe(200);
+            expect(response.status).toBe(204);
         });
     });
     describe("Getting budgets", () => {
@@ -206,7 +206,7 @@ describe("Testing Budget", () => {
             expect(response.status).toBe(404);
         });
 
-        it("successfully should return 200", async () => {
+        it("successfully should return 201", async () => {
             const input = {name: "Rent", amountBudgeted: 5000};
             const mockBudget = {id: 1, current: true, month: getMonth(), userId: 1 };
             const mockTotal = {userId: 1, budgetId: mockBudget.id, totalAmountBudgeted: 0, totalAmountSpent: 0, totalIncome: 0};
@@ -221,7 +221,7 @@ describe("Testing Budget", () => {
             totalMock.save = jest.fn().mockResolvedValue("success");
             const response = await supertest(app).post('/api/create-expense').set('Cookie', `jwt=${token}`).send(input);
 
-            expect(response.status).toBe(200);
+            expect(response.status).toBe(201);
         });
 
     });
@@ -285,21 +285,21 @@ describe("Testing Budget", () => {
     });
     describe("Editing Expense", () => {
         it("without budget id should return 400", async () => {
-            const input = {amountBudgeted: 5000};
+            const input = {name: "rent", amountBudgeted: 5000};
             const response = await supertest(app).put('/api/edit-expense/1').set('Cookie', `jwt=${token}`).send(input);
 
             expect(response.status).toBe(400);
         });
 
         it("without amount budgeted should return 400", async () => {
-            const input = {budget_id: 1};
+            const input = {name: "rent",budget_id: 1};
             const response = await supertest(app).put('/api/edit-expense/1').set('Cookie', `jwt=${token}`).send(input);
 
             expect(response.status).toBe(400);
         });
 
         it("when the expense does not exist should return 404", async () => {
-            const input = {budget_id: 1, amountBudgeted: 5000};
+            const input = {name: "rent", budget_id: 1, amountBudgeted: 5000};
             Expense.findOne.mockResolvedValue(null);
             const response = await supertest(app).put('/api/edit-expense/1').set('Cookie', `jwt=${token}`).send(input);
             
@@ -307,7 +307,7 @@ describe("Testing Budget", () => {
         });
 
         it("successfully should return 200", async () => {
-            const input = {budget_id: 1, amountBudgeted: 5000};
+            const input = {name: "rent", budget_id: 1, amountBudgeted: 5000};
             const mockExpense = {name: "Rent", amountBudgeted: 3000, amountSpent: 0, userId : 1}
             const mockTotal = {userId: 1, budgetId: 1, totalAmountBudgeted: 0, totalAmountSpent: 0, totalIncome: 0};
             
@@ -352,7 +352,7 @@ describe("Testing Budget", () => {
             
             expect(response.status).toBe(403);
         }); 
-        it("when no transaction has been carried out on the expense server should return 200", async () => {
+        it("when no transaction has been carried out on the expense server should return 204", async () => {
             // const input = {budget_id: 1};
             const mockTotal = {userId: 1, budgetId: 1, totalAmountBudgeted: 0, totalAmountSpent: 0, totalIncome: 0};
             const mockExpense = {name: "Rent", amountBudgeted: 3000, amountSpent: 0, userId : 1}
@@ -368,7 +368,7 @@ describe("Testing Budget", () => {
             totalMock.save = jest.fn().mockResolvedValue("success");
             const response = await supertest(app).delete('/api/delete-expense/1?budget_id=1').set('Cookie', `jwt=${token}`);
             
-            expect(response.status).toBe(200);
+            expect(response.status).toBe(204);
         });    
     });
     describe("Getting Incomes", () => {
@@ -480,7 +480,7 @@ describe("Testing Budget", () => {
             expect(response.status).toBe(404);
             expect(Expense.findOne).toHaveBeenCalledTimes(1);
         });
-        it("successfully should return 200", async () => {
+        it("successfully should return 201", async () => {
             const input = {expense_id: 1, amount: 500, note: "noteeess"};
             const mockUser = {name: "john", email: "test@test.com", id: 1, password: "password", verified: true};
             const mockBudget = {id: 1, current: true, month: getMonth(), userId: mockUser.id };
@@ -504,7 +504,7 @@ describe("Testing Budget", () => {
 
             const response = await supertest(app).post('/api/create-expense-transaction').set('Cookie', `jwt=${token}`).send(input);
 
-            expect(response.status).toBe(200);
+            expect(response.status).toBe(201);
         })
     });
     describe("creating Income transactions", () => {
@@ -538,7 +538,7 @@ describe("Testing Budget", () => {
 
             expect(response.status).toBe(404);
         });
-        it("successfully should return 200", async () => {
+        it("successfully should return 201", async () => {
             const input = {name: 1, amount: 500, note: "noteeess"};
             const mockUser = {name: "john", email: "test@test.com", id: 1, password: "password", verified: true};
             const mockBudget = {id: 1, current: true, month: getMonth(), userId: mockUser.id };
@@ -559,7 +559,7 @@ describe("Testing Budget", () => {
 
             const response = await supertest(app).post('/api/create-income-transaction').set('Cookie', `jwt=${token}`).send(input);
 
-            expect(response.status).toBe(200);
+            expect(response.status).toBe(201);
         })
     })
 })

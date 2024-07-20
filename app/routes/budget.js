@@ -5,7 +5,7 @@ const budgetController = require("../controllers/budget");
 const authController = require("../controllers/auth");
 
 Router.post('/api/create-budget', authController.protectedRoute, budgetController.createBudget);
-Router.post('/api/delete-budget', authController.protectedRoute, budgetController.deleteBudget);
+Router.delete('/api/delete-budget', authController.protectedRoute, budgetController.deleteBudget);
 Router.get('/api/get-budget/all', authController.protectedRoute, budgetController.getAllBudget);
 Router.get('/api/get-budget/current', authController.protectedRoute, budgetController.getCurrentBudget);
 Router.get('/api/get-budget/:budget_id', authController.protectedRoute, budgetController.getBudget);

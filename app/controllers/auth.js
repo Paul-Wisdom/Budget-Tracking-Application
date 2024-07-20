@@ -173,6 +173,14 @@ const postSignIn = (req, res, next) => {
     const password = req.body.password;
 
     let loggedUser;
+    if(!email)
+        {
+            return res.status(400).send({message: "email must be provided"})
+        }
+    if(!password)
+        {
+            return res.status(400).send({message: "password must be provided"})
+        }
 
     User.findOne({where: {email: email}}).then(user => {
         if(!user)

@@ -28,7 +28,7 @@ const createBudget = (req, res, next) => {
                     console.log(result);
                     return Total.create({userId: user_id, budgetId: result.id, totalAmountBudgeted: 0, totalAmountSpent: 0, totalIncome: 0});
                 }).then(result => {
-                    return res.json({message: "created a budget successfully", error: false});
+                    return res.status(201).json({message: "created a budget successfully", error: false});
                 })
             }).catch(err => {
                 console.log(err);
@@ -44,7 +44,7 @@ const deleteBudget = (req, res, next) => {
 
     if(!budget_id)
         {
-            return res.status(400).send({message: "no budget Id", error: true});
+            return res.status(400).send({message: "no budget Id provided", error: true});
         }
     User.findByPk(user_id).then(user => {
         if(!user){
@@ -59,7 +59,7 @@ const deleteBudget = (req, res, next) => {
 
         budget.destroy().then(result => {
             console.log(result);
-            return res.json({message: "Deleted budget successfully", error: false});
+            return res.status(204).json({message: "Deleted budget successfully", error: false});
         })
     }).catch(err => {
         console.log(err);
@@ -149,7 +149,7 @@ const createExpense = (req, res, next) => {
             total.set({totalAmountBudgeted: Number(total.totalAmountBudgeted) + Number(amountBudgeted)});
             total.save();
         }).then(result => {
-            return res.json({message: "created an expense successfully", error: false});
+            return res.status(201).json({message: "created an expense successfully", error: false});
         })
     }).catch(err => {
         console.log(err);
@@ -217,6 +217,10 @@ const editExpense = (req, res, next) => {
         {
             return res.status(400).send({message: "amount budgeted not passed with request", error: true});
         }
+    if(!name)
+        {
+            return res.status(400).send({message: "name not passed with request", error: true});
+        }
     Expense.findOne({where: {id: expense_id, budgetId: budget_id}}).then(expense => {
         if(!expense)
             {
@@ -269,7 +273,7 @@ const deleteExpense = (req, res, next) => {
                         total.set({totalAmountBudgeted: Number(total.totalAmountBudgeted) - Number(oldAmountBudgeted)});
                         total.save()
                     }).then(result => {
-                        return res.json({message: "Deleted expense successfully", error: false});
+                        return res.status(204).json({message: "Deleted expense successfully", error: false});
                     })
                 }
           })
@@ -422,7 +426,7 @@ const createExpenseTransaction = (req, res, next) => {
         total.save();
         return Transaction.create({name: transaction_name, amount: amount, note: note, type: "Expense", userId: user_id});
     }).then(result => {
-        return res.json(result);
+        return res.status(201).json(result);
     }).catch(err => {
         console.log(err);
     })
@@ -459,7 +463,7 @@ const createIncomeTransaction = (req, res,next) => {
             total.save();
             return Transaction.create({name: name, amount: amount, note: note, type: "Income", userId: user_id});
         }).then(result => {
-            return res.json(result);
+            return res.status(201).json(result);
         });
     }).catch(err => {
         console.log(err);
