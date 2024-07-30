@@ -33,9 +33,9 @@ function createServer(){
 
     app.use(express.urlencoded({extended: true}));
 
-    app.get('/', (req, res, next) => {
-        res.json({message: "welcome"});
-    });
+    // app.get('/', (req, res, next) => {
+    //     res.json({message: "welcome"});
+    // });
     app.use(authRoutes);
     app.use(budgetRoutes);
 
