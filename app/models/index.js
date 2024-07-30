@@ -3,14 +3,10 @@ const Sequelize = require('sequelize');
 
 
 const config = require('../config/db.config');
-const ENV = process.env.ENV || 'development';
+// const ENV = process.env.ENV || 'development';
 
 //add port
-let sequelize;
-
-if (ENV === 'development')
-{
-    sequelize = new Sequelize(
+const sequelize = new Sequelize(
         config.DB,
         config.USER,
         config.PASSWORD,
@@ -20,7 +16,6 @@ if (ENV === 'development')
         }
     );
     
-}
 
 
 module.exports = sequelize;
