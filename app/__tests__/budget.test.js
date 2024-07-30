@@ -562,4 +562,35 @@ describe("Testing Budget", () => {
             expect(response.status).toBe(201);
         })
     })
+    describe("Getting transactions", () => {
+        it("should return a status of 200 if user is logged in", async () => {
+            const mockTransactions = [{name: "salary", userId: 1, id: 6, type: "Income", amount: 6000, note: "salary"},{name: "rent", userId: 1, id: 1, type: "Expense", amount: 500, note: "Rent payment"}]
+            Transaction.findAll = jest.fn().mockResolvedValue(mockTransactions)
+            const response = await supertest(app).get('/api/get-transactions').set('Cookie', `jwt=${token}`);
+            expect(response.status).toBe(200);
+        })
+    })
+
+    describe("Getting totals", () => {
+        it("should return a status of 200 if budgetId is provided", async () => {
+            // const mockTransactions = [{name: "salary", userId: 1, id: 6, type: "Income", amount: 6000, note: "salary"},{name: "rent", userId: 1, id: 1, type: "Expense", amount: 500, note: "Rent payment"}]
+            const mockTotal = {userId: 1, budgetId: 2, totalAmountBudgeted: 0, totalAmountSpent: 0, totalIncome: 0}
+            Total.findOne.mockResolvedValue(mockTotal)
+            const response = await supertest(app).get('/api/get-totals?budgetId=1').set('Cookie', `jwt=${token}`);
+            expect(response.status).toBe(200);
+        });
+        it("should return a status of 400 if budgetId is not provided", async () => {
+            // const mockTransactions = [{name: "salary", userId: 1, id: 6, type: "Income", amount: 6000, note: "salary"},{name: "rent", userId: 1, id: 1, type: "Expense", amount: 500, note: "Rent payment"}]
+            const mockTotal = {userId: 1, budgetId: 2, totalAmountBudgeted: 0, totalAmountSpent: 0, totalIncome: 0}
+            Total.findOne.mockResolvedValue(mockTotal)
+            const response = await supertest(app).get('/api/get-totals').set('Cookie', `jwt=${token}`);
+            expect(response.status).toBe(400);
+        })
+    })
+    describe("Invalid routes", () => {
+        it("should return 404", async () => {
+            const response = await supertest(app).get('/api/invalidRoute').set('Cookie', `jwt=${token}`);
+            expect(response.status).toBe(404);
+        })
+    })
 })

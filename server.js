@@ -1,3 +1,4 @@
+const express = require('express');
 require('dotenv').config();
 const sendEmails = require('./app/utils/send-Reports');
 const sequelize = require("./app/models/index");
@@ -31,7 +32,7 @@ app.get('/trigger-cron', (req, res) => {
     sendEmails();
     res.send('sending emails');
 })
-
+app.use(express.static('build'));
 // const job = schedule.scheduleJob('0 0 1 * *', () => {
 //     console.log("Running scheduled job: sending mails");
 //     sendEmails();

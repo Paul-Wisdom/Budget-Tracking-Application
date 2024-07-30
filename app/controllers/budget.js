@@ -479,6 +479,20 @@ const getAllTransactions = (req, res, next) => {
     })
 }
 
+const getTotals = (req, res, next) => {
+    const user_id = req.user_id;
+    const budgetId = req.query.budgetId;
+    if(!budgetId)
+    {
+        return res.status(400).send({message: "No budgetId provided"});
+    }
+    Total.findOne({where: {userId: user_id, budgetId: budgetId}}).then(total => {
+        return res.json(total);
+    }).catch(err => {
+        console.log(err);
+    })
+}
+
 // const totalIncomePerBudget = (req, res, next) => {
 
 // };
@@ -510,6 +524,7 @@ module.exports = {
     createIncomeTransaction,
     createExpenseTransaction,
     getCurrentBudget,
-    getAllTransactions
+    getAllTransactions,
+    getTotals
 
 }

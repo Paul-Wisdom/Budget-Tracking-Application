@@ -5,7 +5,9 @@
   "main": "server.js",
   "scripts": {
     "test": "jest",
-    "start": "node server.js"
+    "start": "node server.js",
+    "build:ui": "@powershell Remove-Item -Recurse -Force build && cd ../monthly-budget-tracker && npm run build && @powershell Copy-Item  build -Recurse ../Budget-Tracker",
+    "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push"
   },
   "author": "Paul Wisdom",
   "license": "ISC",

@@ -22,5 +22,5 @@ Router.get('/api/get-income/:income_id', authController.protectedRoute, budgetCo
 Router.post('/api/create-expense-transaction',authController.protectedRoute, budgetController.createExpenseTransaction);
 Router.post('/api/create-income-transaction',authController.protectedRoute, budgetController.createIncomeTransaction);
 Router.get('/api/get-transactions', authController.protectedRoute, budgetController.getAllTransactions);
-
+Router.get('/api/get-totals', authController.protectedRoute, budgetController.getTotals);
 module.exports = Router;

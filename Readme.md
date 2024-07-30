@@ -5,7 +5,7 @@ The monthly budget tracker is an application that stores and provides updates of
 It's key features include;
 - User sign up with email verification
 - Password Change
-- Budget creation on sign up and subsequently every first day of a month
+- Budget creation on sign up and subsequently at beginning of a new month
 - Income and expense creation
 - Transactions storage
 - Display of income and expenses in Pie, Doughnut and Bar Charts
@@ -269,7 +269,17 @@ Endpoint for getting all transactions associated with the signed in user.
 1. 200
 - Successful request
 
-
+- #### GET `/api/get-totals` PROTECTED
+Endpoint for getting the totals of all incomes, amount budgeted and amount spent of expenses associated with the logged in user's current budget. It receives a `budgetId` query parameter.
+##### Status Codes and Possible Causes
+1. 200
+- Successful request
+2. 400
+- Query parameter `budgetId` not provided.  
+### PROTECTED ENDPOINTS
+A status code of `401` may arise due to the one of the following reasons for a PROTECTED endpoint
+1. There was no token passed with the request
+2. An Invalid token was passed with the request.
 ## Contributing
 Guidelines for contributing to the project.
 coming soon

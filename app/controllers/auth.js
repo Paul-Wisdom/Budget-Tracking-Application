@@ -23,15 +23,17 @@ transporter.verify((error, success) => {
 const sendVerificationMail= ({id, email}, res, type) => {
     let baseUrl;
     const env = process.env.ENV || 'development';
+    let currentUrl;
 
     if (env === 'development')
         {
             baseUrl = 'http://localhost:';
+            currentUrl = baseUrl + process.env.SERVER_PORT +'/';
         }
     else{
             baseUrl = process.env.URL;
+            currentUrl = baseUrl + '/';
         }
-    const currentUrl = baseUrl + process.env.SERVER_PORT +'/';
     const uniqueString = uuidv4() + id;
     let body;
     let url;
