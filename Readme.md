@@ -11,7 +11,7 @@ It's key features include;
 - Display of income and expenses in Pie, Doughnut and Bar Charts
 - Generation of budget statements including all entered transactions, income, expenses and charts in a PDF     sent to user's mail 
 
-Applications is live [here](https://budget-tracking-application-bmg3.onrender.com)
+Application is live [here](https://budget-tracking-application-bmg3.onrender.com)
 
 ## Table of Contents
 - [Installation](#installation)
