@@ -43,7 +43,7 @@ console.log(__dirname);
 //     sendEmails();
 // });
 const port = process.env.SERVER_PORT;
-sequelize.sync().then(result => {
+sequelize.sync({force: true}).then(result => {
     // console.log(result);
     app.listen(port, () => {
     console.log(`port is running on port ${port}`);
