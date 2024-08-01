@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const {v4: uuidv4} = require('uuid');
+const path = require('path');
 require('dotenv').config();
 
 const User = require('../models/user')
@@ -80,7 +81,8 @@ const getAccountVerification = (req, res, next) => {
     Verification.findOne({where : {userId : id}}).then(verif => {
         if(!verif)
             {
-                return res.status(404).send({messge: msg[0], error: true})
+                return res.sendFile(path.join(__dirname, '..','..','views', 'HTML', 'Account0.html'));
+                // return res.status(404).send({messge: msg[0], error: true})
             }
         if(Date.now() > verif.expiresAt)
             {
@@ -89,7 +91,8 @@ const getAccountVerification = (req, res, next) => {
                 }).then(user =>{
                     return user.destroy();
                 }).then(result => {
-                    return res.status(403).send({message: msg[1], error: true});
+                    return res.sendFile(path.join(__dirname,'..','..', 'views', 'HTML', 'Account1.html'));
+                    // return res.status(403).send({message: msg[1], error: true});
                 }).catch(err => {
                     console.log(err);
                 })
@@ -105,7 +108,8 @@ const getAccountVerification = (req, res, next) => {
                     }).then(result => {
                         result.save();
                         v2.destroy().then(result => {
-                            return res.json({message: msg[2], error: false})
+                            return res.sendFile(path.join(__dirname,'..','..', 'views', 'HTML', 'Account2.html'));
+                            // return res.json({message: msg[2], error: false})
                         })
                     }).catch(err => {
                         console.log(err);
@@ -113,7 +117,8 @@ const getAccountVerification = (req, res, next) => {
                     })
                 }
                 else{
-                    return res.status(401).send({message: "Invalid link", error: true});
+                    return res.sendFile(path.join(__dirname, '..','..','views', 'HTML', 'InvalidLink.html'));
+                    // return res.status(401).send({message: "Invalid link", error: true});
                 }
     
         });}
@@ -325,7 +330,8 @@ const getPasswordVerification = (req, res, next) => {
     Verification.findOne({where : {userId : id}}).then(verif => {
         if(!verif)
             {
-                return res.status(404).send({messge: msg[0], error: true})
+                return res.sendFile(path.join(__dirname, '..','..','views', 'HTML', 'Password0.html'));
+                // return res.status(404).send({messge: msg[0], error: true})
             }
         if(Date.now() > verif.expiresAt)
             {
@@ -344,12 +350,14 @@ const getPasswordVerification = (req, res, next) => {
                     NewPassword.findOne({where: {userId : id}}).then(result => {
                     if(!result)
                         {
-                            return res.status(404).send({messge: msg[0], error: true})
+                            return res.sendFile(path.join(__dirname, '..','..','views', 'HTML', 'Password0.html'));
+                            // return res.status(404).send({messge: msg[0], error: true})
                         }
                     if(Date.now() > result.expiresAt)
                         {
                             result.destroy().then(result => {
-                            return res.status(403).send({message: msg[1], error: true});
+                                return res.sendFile(path.join(__dirname, '..','..','views', 'HTML', 'Password1.html'));
+                            // return res.status(403).send({message: msg[1], error: true});
                             }).catch(err => {
                             console.log(err); })
                         }
@@ -364,7 +372,8 @@ const getPasswordVerification = (req, res, next) => {
                         }).then(result=> {
                             return newPassword2.destroy();
                         }).then(result=> {
-                            return res.json({message: msg[2], error: false});
+                            return res.sendFile(path.join(__dirname, '..','..','views', 'HTML', 'Password2.html'));
+                            // return res.json({message: msg[2], error: false});
                         })}
                         }).catch(err => {
                             console.log(err);
@@ -373,7 +382,8 @@ const getPasswordVerification = (req, res, next) => {
     
                 }
                 else{
-                    return res.status(401).send({message: "Invalid link", error: true});
+                    return res.sendFile(path.join(__dirname, '..','..','views', 'HTML', 'InvalidLink.html'));
+                    // return res.status(401).send({message: "Invalid link", error: true});
                 }
     
         });}

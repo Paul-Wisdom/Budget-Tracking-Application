@@ -34,9 +34,13 @@ app.get('/trigger-cron', (req, res) => {
     res.send('sending emails');
 })
 app.use(express.static(path.join(__dirname, 'build')));
+// app.use('/', (req, res) => {
+//     res.sendFile(path.join(__dirname, 'views', 'HTML', 'NotFound.html'));
+// })
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 })
+
 console.log(__dirname);
 // const job = schedule.scheduleJob('0 0 1 * *', () => {
 //     console.log("Running scheduled job: sending mails");
